@@ -1,10 +1,12 @@
 import React, { useRef, useState } from "react";
 import Header from "./Header";
 import Validate from "../Utils/Validate";
+import { auth } from "../Utils/firebase";
+import { createUserWithEmailAndPassword ,signInWithEmailAndPassword} from "firebase/auth";
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
-  const [errorMsg,setErrorMsg]=useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const email = useRef(null);
   const password = useRef(null);
@@ -13,10 +15,43 @@ const Login = () => {
     setIsSignInForm(!isSignInForm);
   };
 
-  const handleSubmit=()=>{
-    const msg=Validate(email.current.value,password.current.value);
+  const handleSubmit = () => {
+    const msg = Validate(email.current.value, password.current.value);
     setErrorMsg(msg);
-  }
+
+    if (!isSignInForm) {
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+          console.log(user);
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          // ..
+          console.log(errorCode + errorMessage);
+        });
+    } else {
+      signInWithEmailAndPassword(auth, email.current.value, password.current.value)
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log(user);
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          console.log(errorCode + errorMessage);
+        });
+    }
+  };
 
   return (
     <div>
@@ -31,7 +66,7 @@ const Login = () => {
 
       <form
         action=""
-        onSubmit={(e)=>e.preventDefault(e)}
+        onSubmit={(e) => e.preventDefault(e)}
         className=" left-0 right-0 my-36 mx-auto w-3/12 absolute p-12 text-white bg-black rounded-lg bg-opacity-80"
       >
         <h1 className="text-xl font-bold">
@@ -57,7 +92,11 @@ const Login = () => {
           className="p-4 my-4 w-full bg-gray-700 rounded-lg"
         />
         <p className="text-red-700">{errorMsg}</p>
-        <button type="submit" onClick={handleSubmit} className="p-4 my-6 bg-red-700 w-full rounded-lg">
+        <button
+          type="submit"
+          onClick={handleSubmit}
+          className="p-4 my-6 bg-red-700 w-full rounded-lg"
+        >
           {isSignInForm ? "Sign In" : "Sign Up"}
         </button>
         <h1 onClick={toggleSignInForm} className="cursor-pointer">
